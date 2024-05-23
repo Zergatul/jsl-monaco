@@ -5,15 +5,6 @@
     </head>
     <body>
         <div id="container" style="height:500px;"></div>
-        <script>
-            function testws() {
-                var ws = new WebSocket('ws://localhost:8123/ws');
-                ws.onerror = event => console.log(event);
-                ws.onopen = () => console.log('OPEN');
-                ws.onclose = () => console.log('CLOSE');
-                window.ws = ws;
-            }
-        </script>
         <script src="index.js" type="module"></script>
     </body>
 </html>

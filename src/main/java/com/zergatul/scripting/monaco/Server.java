@@ -61,6 +61,22 @@ public class Server {
                     Lexer lexer = new Lexer(new LexerInput(code));
                     LexerOutput output = lexer.lex();
                     Json.sendResponse(exchange, output);
+                } else if (path.equals("/code/diagnostics")) {
+                    Gson gson = new GsonBuilder().create();
+                    byte[] data = exchange.getRequestBody().readAllBytes();
+                    DiagnosticsRequest request = gson.fromJson(new String(data, Charset.defaultCharset()), DiagnosticsRequest.class);
+
+                    LexerInput lexerInput = new LexerInput(request.code);
+                    Lexer lexer = new Lexer(lexerInput);
+                    LexerOutput lexerOutput = lexer.lex();
+
+                    Parser parser = new Parser(lexerOutput);
+                    ParserOutput parserOutput = parser.parse();
+
+                    Binder binder = new Binder(parserOutput, resolver.resolve(request.type).getContext());
+                    BinderOutput binderOutput = binder.bind();
+
+                    Json.sendResponse(exchange, binderOutput.diagnostics().stream().map(d -> new DiagnosticsResponseItem(d.range, d.message)).toArray());
                 } else if (path.equals("/code/tokens")) {
                     Json.sendResponse(exchange, Arrays.stream(TokenType.values()).map(Enum::name).toArray());
                 } else if (path.equals("/code/nodes")) {
@@ -165,6 +181,10 @@ public class Server {
     }
 
     public record TokenRule(String token, String foreground) {}
+
+    public record DiagnosticsRequest(String code, String type) {}
+
+    public record DiagnosticsResponseItem(TextRange range, String message) {}
 
     public record HoverRequest(String code, String type, int line, int column) {}
 

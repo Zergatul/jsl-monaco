@@ -16,7 +16,24 @@ import * as monaco from 'https://cdn.jsdelivr.net/npm/monaco-editor@0.48.0/+esm'
     const tokens = await get('/code/tokens');
     const nodes = await get('/code/nodes');
 
-    const getTokenTypeIndex = type => tokens.indexOf(type);
+    const setDiagnostics = async (model) => {
+        let diagnostics = await post('/code/diagnostics', {
+            code: model.getValue(),
+            type: ''
+        });
+        let tokens = [];
+        for (let diagnostic of diagnostics) {
+            tokens.push({
+                startLineNumber: diagnostic.range.line1,
+                startColumn: diagnostic.range.colum1,
+                endLineNumber: diagnostic.range.line2,
+                endColumn: diagnostic.range.column2,
+                message: diagnostic.message,
+                severity: monaco.MarkerSeverity.Error
+            });
+        }
+        monaco.editor.setModelMarkers(model, 'owner', tokens);
+    };
 
     monaco.languages.registerDocumentSemanticTokensProvider(languageId, {
         getLegend() {
@@ -26,7 +43,9 @@ import * as monaco from 'https://cdn.jsdelivr.net/npm/monaco-editor@0.48.0/+esm'
             };
         },
         async provideDocumentSemanticTokens(model, lastResultId, token) {
-            let lexerOutput = await post('/code/tokenize', model.getValue());
+            let tokenize = post('/code/tokenize', model.getValue());
+            setDiagnostics(model);
+            let lexerOutput = await tokenize;
             let result = [];
             let prevToken = { range: { line1: 1, column1: 1, length: 0 } };
             for (let token of lexerOutput.tokens.list) {
@@ -105,6 +124,24 @@ import * as monaco from 'https://cdn.jsdelivr.net/npm/monaco-editor@0.48.0/+esm'
                     range.column1,
                     range.line2,
                     range.column2)
+            };
+        }
+    });
+
+    monaco.languages.registerCompletionItemProvider(languageId, {
+        provideCompletionItems(model, position, context, token) {
+            return {
+                suggestions: [{
+                    label: 'Label',
+                    detail: 'This is details',
+                    documentation: '**Some Docs**',
+                    insertText: 'Intellisense',
+                    kind: monaco.languages.CompletionItemKind.Function,
+                    
+                    //preselect?: boolean;
+                    //range: IRange | CompletionItemRanges;
+                    //sortText?: string;
+                }]
             };
         }
     });
