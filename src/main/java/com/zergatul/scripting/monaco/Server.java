@@ -45,8 +45,10 @@ public class Server {
         };
 
         Theme theme = new DarkTheme();
-        HoverProvider hoverProvider = new HoverProvider(theme);
+        DocumentationProvider documentationProvider = new DocumentationProvider();
+        HoverProvider hoverProvider = new HoverProvider(theme, documentationProvider);
         DefinitionProvider definitionProvider = new DefinitionProvider();
+        CompletionProvider completionProvider = new CompletionProvider(documentationProvider);
 
         server.createContext("/code/", new HttpHandler() {
             @Override
@@ -121,6 +123,22 @@ public class Server {
 
                     BoundNode node = find(binderOutput.unit(), request.line, request.column);
                     Json.sendResponse(exchange, definitionProvider.get(node), TextRange.class);
+                } else if (path.equals("/code/completion")) {
+                    Gson gson = new GsonBuilder().create();
+                    byte[] data = exchange.getRequestBody().readAllBytes();
+                    CompletionRequest request = gson.fromJson(new String(data, Charset.defaultCharset()), CompletionRequest.class);
+
+                    LexerInput lexerInput = new LexerInput(request.code);
+                    Lexer lexer = new Lexer(lexerInput);
+                    LexerOutput lexerOutput = lexer.lex();
+
+                    Parser parser = new Parser(lexerOutput);
+                    ParserOutput parserOutput = parser.parse();
+
+                    Binder binder = new Binder(parserOutput, resolver.resolve(request.type).getContext());
+                    BinderOutput binderOutput = binder.bind();
+
+                    Json.sendResponse(exchange, completionProvider.get(binderOutput, request.line, request.column));
                 } else {
                     exchange.sendResponseHeaders(404, 0);
                 }
@@ -187,6 +205,8 @@ public class Server {
     public record DiagnosticsResponseItem(TextRange range, String message) {}
 
     public record HoverRequest(String code, String type, int line, int column) {}
+
+    public record CompletionRequest(String code, String type, int line, int column) {}
 
     public static class Root {
         public static final MainApi main = new MainApi();

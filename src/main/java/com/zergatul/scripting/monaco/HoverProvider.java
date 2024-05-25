@@ -12,9 +12,11 @@ import java.util.List;
 public class HoverProvider {
 
     private final Theme theme;
+    private final DocumentationProvider documentationProvider;
 
-    public HoverProvider(Theme theme) {
+    public HoverProvider(Theme theme, DocumentationProvider documentationProvider) {
         this.theme = theme;
+        this.documentationProvider = documentationProvider;
     }
 
     public HoverResponse get(BoundNode node) {
@@ -113,23 +115,23 @@ public class HoverProvider {
     }
 
     private HoverResponse getBoolean(TextRange range) {
-        return new HoverResponse(List.of(predefinedType("boolean"), description("true or false value")), range);
+        return new HoverResponse(List.of(predefinedType("boolean"), description(documentationProvider.getTypeDocs(SBoolean.instance))), range);
     }
 
     private HoverResponse getInt(TextRange range) {
-        return new HoverResponse(List.of(predefinedType("int"), description("32-bit signed integer")), range);
+        return new HoverResponse(List.of(predefinedType("int"), description(documentationProvider.getTypeDocs(SInt.instance))), range);
     }
 
     private HoverResponse getChar(TextRange range) {
-        return new HoverResponse(List.of(predefinedType("char"), description("Single character")), range);
+        return new HoverResponse(List.of(predefinedType("char"), description(documentationProvider.getTypeDocs(SChar.instance))), range);
     }
 
     private HoverResponse getFloat(TextRange range) {
-        return new HoverResponse(List.of(predefinedType("float"), description("Double-precision floating-point number")), range);
+        return new HoverResponse(List.of(predefinedType("float"), description(documentationProvider.getTypeDocs(SFloat.instance))), range);
     }
 
     private HoverResponse getString(TextRange range) {
-        return new HoverResponse(List.of(predefinedType("string"), description("Text as sequence of characters")), range);
+        return new HoverResponse(List.of(predefinedType("string"), description(documentationProvider.getTypeDocs(SString.instance))), range);
     }
 
     private String type(SType type) {

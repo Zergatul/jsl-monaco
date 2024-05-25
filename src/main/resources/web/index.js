@@ -129,19 +129,20 @@ import * as monaco from 'https://cdn.jsdelivr.net/npm/monaco-editor@0.48.0/+esm'
     });
 
     monaco.languages.registerCompletionItemProvider(languageId, {
-        provideCompletionItems(model, position, context, token) {
+        async provideCompletionItems(model, position, context, token) {
+            const suggestions = await post('/code/completion', {
+                code: model.getValue(),
+                type: "",
+                line: position.lineNumber,
+                column: position.column
+            });
             return {
-                suggestions: [{
-                    label: 'Label',
-                    detail: 'This is details',
-                    documentation: '**Some Docs**',
-                    insertText: 'Intellisense',
-                    kind: monaco.languages.CompletionItemKind.Function,
-                    
-                    //preselect?: boolean;
-                    //range: IRange | CompletionItemRanges;
-                    //sortText?: string;
-                }]
+                suggestions: suggestions.map(s => {
+                    return {
+                        ...s,
+                        kind: monaco.languages.CompletionItemKind[s.kind]
+                    };
+                })
             };
         }
     });
