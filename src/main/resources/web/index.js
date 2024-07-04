@@ -128,7 +128,7 @@ import * as monaco from 'https://cdn.jsdelivr.net/npm/monaco-editor@0.48.0/+esm'
         }
     });
 
-    monaco.languages.registerCompletionItemProvider(languageId, {
+    /*monaco.languages.registerCompletionItemProvider(languageId, {
         async provideCompletionItems(model, position, context, token) {
             const suggestions = await post('/code/completion', {
                 code: model.getValue(),
@@ -145,7 +145,7 @@ import * as monaco from 'https://cdn.jsdelivr.net/npm/monaco-editor@0.48.0/+esm'
                 })
             };
         }
-    });
+    });*/
 
     monaco.editor.defineTheme('cheatutils-scripting-language-dark', {
         base: 'vs-dark',
