@@ -3,7 +3,7 @@ package com.zergatul.scripting.monaco;
 import com.zergatul.scripting.TextRange;
 import com.zergatul.scripting.binding.nodes.BoundNameExpressionNode;
 import com.zergatul.scripting.binding.nodes.BoundNode;
-import com.zergatul.scripting.compiler.Symbol;
+import com.zergatul.scripting.symbols.Symbol;
 
 public class DefinitionProvider {
 

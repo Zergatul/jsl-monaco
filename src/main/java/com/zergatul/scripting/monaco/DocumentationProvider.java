@@ -1,6 +1,11 @@
 package com.zergatul.scripting.monaco;
 
+import com.zergatul.scripting.symbols.Function;
+import com.zergatul.scripting.symbols.LocalVariable;
+import com.zergatul.scripting.symbols.StaticVariable;
 import com.zergatul.scripting.type.*;
+
+import java.util.List;
 
 public class DocumentationProvider {
 
@@ -33,5 +38,59 @@ public class DocumentationProvider {
                     CompletionItemKind.CLASS);
         }
         return null;
+    }
+
+    public Suggestion getStaticKeywordSuggestion() {
+        return new Suggestion(
+                "static",
+                null,
+                null,
+                "static",
+                CompletionItemKind.KEYWORD);
+    }
+
+    public Suggestion getVoidKeywordSuggestion() {
+        return new Suggestion(
+                "void",
+                null,
+                null,
+                "void",
+                CompletionItemKind.KEYWORD);
+    }
+
+    public List<Suggestion> getCommonStatementStartSuggestions() {
+        return List.of(
+                new Suggestion("for", null, null, "for", CompletionItemKind.KEYWORD),
+                new Suggestion("foreach", null, null, "foreach", CompletionItemKind.KEYWORD),
+                new Suggestion("if", null, null, "if", CompletionItemKind.KEYWORD),
+                new Suggestion("return", null, null, "return", CompletionItemKind.KEYWORD),
+                new Suggestion("while", null, null, "while", CompletionItemKind.KEYWORD));
+    }
+
+    public Suggestion getLocalVariableSuggestion(LocalVariable variable) {
+        return new Suggestion(
+                variable.getName(),
+                variable.getType().toString(),
+                null,
+                variable.getName(),
+                CompletionItemKind.VARIABLE);
+    }
+
+    public Suggestion getStaticVariableSuggestion(StaticVariable variable) {
+        return new Suggestion(
+                variable.getName(),
+                variable.getType().toString(),
+                null,
+                variable.getName(),
+                CompletionItemKind.VARIABLE);
+    }
+
+    public Suggestion getFunctionSuggestion(Function function) {
+        return new Suggestion(
+                function.getName(),
+                function.getFunctionType().toString(),
+                null,
+                function.getName(),
+                CompletionItemKind.FUNCTION);
     }
 }

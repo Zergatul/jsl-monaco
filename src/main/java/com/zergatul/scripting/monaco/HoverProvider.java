@@ -2,11 +2,10 @@ package com.zergatul.scripting.monaco;
 
 import com.zergatul.scripting.TextRange;
 import com.zergatul.scripting.binding.nodes.*;
-import com.zergatul.scripting.compiler.*;
+import com.zergatul.scripting.symbols.*;
 import com.zergatul.scripting.type.*;
 import com.zergatul.scripting.type.operation.BinaryOperation;
 
-import java.lang.reflect.Method;
 import java.util.List;
 
 public class HoverProvider {
