@@ -129,6 +129,7 @@ import * as monaco from 'https://cdn.jsdelivr.net/npm/monaco-editor@0.48.0/+esm'
     });
 
     monaco.languages.registerCompletionItemProvider(languageId, {
+        triggerCharacters: ['.'],
         async provideCompletionItems(model, position, context, token) {
             const suggestions = await post('/code/completion', {
                 code: model.getValue(),

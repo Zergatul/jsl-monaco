@@ -215,6 +215,8 @@ public class Server {
 
     public static class FreeCamApi {
         public void toggle() {}
+        public boolean isActive() { return false; }
+        public void toggleControls() {}
     }
 
     public static class MainApi {

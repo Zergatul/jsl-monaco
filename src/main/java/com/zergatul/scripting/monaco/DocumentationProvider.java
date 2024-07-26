@@ -79,7 +79,7 @@ public class DocumentationProvider {
     public Suggestion getStaticVariableSuggestion(StaticVariable variable) {
         return new Suggestion(
                 variable.getName(),
-                variable.getType().toString(),
+                type(variable.getType()),
                 null,
                 variable.getName(),
                 CompletionItemKind.VARIABLE);
@@ -92,5 +92,36 @@ public class DocumentationProvider {
                 null,
                 function.getName(),
                 CompletionItemKind.FUNCTION);
+    }
+
+    public Suggestion getPropertySuggestion(PropertyReference property) {
+        return new Suggestion(
+                property.getName(),
+                type(property.getType()),
+                null,
+                property.getName(),
+                CompletionItemKind.PROPERTY);
+    }
+
+    public Suggestion getMethodSuggestion(MethodReference method) {
+        return new Suggestion(
+                method.getName(),
+                "...",
+                null,
+                method.getName(),
+                CompletionItemKind.METHOD);
+    }
+
+    private String type(SType type) {
+        if (type instanceof SClassType classType) {
+            Class<?> clazz = classType.getJavaClass();
+            if (clazz.getName().startsWith("com.zergatul.scripting.monaco")) {
+                return clazz.getSimpleName();
+            } else {
+                return clazz.getName();
+            }
+        } else {
+            return type.toString();
+        }
     }
 }

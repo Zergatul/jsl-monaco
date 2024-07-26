@@ -23,6 +23,8 @@ public class CompletionProvider {
         BoundCompilationUnitNode unit = output.unit();
         CompletionContext completionContext = getCompletionContext(unit, line, column);
 
+        List<Suggestion> suggestions = new ArrayList<>();
+
         boolean canStatic = false;
         boolean canVoid = false;
         boolean canType = false;
@@ -70,13 +72,25 @@ public class CompletionProvider {
                 case STATEMENTS_LIST -> {
                     canStatement = true;
                 }
+                case PROPERTY_ACCESS_EXPRESSION -> {
+                    BoundPropertyAccessExpressionNode node = (BoundPropertyAccessExpressionNode) completionContext.entry.node;
+                    SType type = node.callee.type;
+                    if (node.property instanceof UnknownPropertyReference) {
+                        String partial = node.name;
+                        type.getInstanceProperties().stream()
+                                .filter(p -> p.getName().toLowerCase().startsWith(partial.toLowerCase()))
+                                .forEach(p -> suggestions.add(documentationProvider.getPropertySuggestion(p)));
+                        type.getInstanceMethods().stream()
+                                .filter(m -> m.getName().toLowerCase().startsWith(partial.toLowerCase()))
+                                .forEach(m -> suggestions.add(documentationProvider.getMethodSuggestion(m)));
+                    }
+                }
                 default -> {
                     throw new InternalException();
                 }
             }
         }
 
-        List<Suggestion> suggestions = new ArrayList<>();
         if (canStatic) {
             suggestions.add(documentationProvider.getStaticKeywordSuggestion());
         }
