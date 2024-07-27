@@ -86,6 +86,9 @@ public class HoverProvider {
             case METHOD -> {
                 BoundMethodNode methodNode = (BoundMethodNode) node;
                 MethodReference methodReference = methodNode.method;
+                if (methodReference instanceof UnknownMethodReference) {
+                    yield null;
+                }
                 StringBuilder sb = new StringBuilder();
                 sb.append(type(methodReference.getReturn())).append(' ');
                 sb.append(type(methodReference.getOwner()));

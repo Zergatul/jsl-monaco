@@ -25,7 +25,7 @@ import * as monaco from 'https://cdn.jsdelivr.net/npm/monaco-editor@0.48.0/+esm'
         for (let diagnostic of diagnostics) {
             tokens.push({
                 startLineNumber: diagnostic.range.line1,
-                startColumn: diagnostic.range.colum1,
+                startColumn: diagnostic.range.column1,
                 endLineNumber: diagnostic.range.line2,
                 endColumn: diagnostic.range.column2,
                 message: diagnostic.message,

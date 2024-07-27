@@ -58,6 +58,15 @@ public class DocumentationProvider {
                 CompletionItemKind.KEYWORD);
     }
 
+    public Suggestion getAwaitKeywordSuggestion() {
+        return new Suggestion(
+                "await",
+                null,
+                null,
+                "await",
+                CompletionItemKind.KEYWORD);
+    }
+
     public List<Suggestion> getCommonStatementStartSuggestions() {
         return List.of(
                 new Suggestion("for", null, null, "for", CompletionItemKind.KEYWORD),
@@ -74,6 +83,15 @@ public class DocumentationProvider {
                 null,
                 variable.getName(),
                 CompletionItemKind.VARIABLE);
+    }
+
+    public Suggestion getStaticConstantSuggestion(StaticVariable variable) {
+        return new Suggestion(
+                variable.getName(),
+                type(variable.getType()),
+                null,
+                variable.getName(),
+                CompletionItemKind.VALUE);
     }
 
     public Suggestion getStaticVariableSuggestion(StaticVariable variable) {

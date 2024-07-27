@@ -7,7 +7,10 @@ public enum CompletionItemKind {
     KEYWORD("Keyword"),
     FUNCTION("Function"),
     STRUCT("Struct"),
-    CLASS("Class");
+    CLASS("Class"),
+    CONSTANT("Constant"),
+    MODULE("Module"),
+    VALUE("Value");
 
     private final String name;
 

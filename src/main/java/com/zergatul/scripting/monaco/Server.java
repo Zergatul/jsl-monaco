@@ -53,40 +53,40 @@ public class Server {
         server.createContext("/code/", new HttpHandler() {
             @Override
             public void handle(HttpExchange exchange) throws IOException {
-                String path = exchange.getRequestURI().getPath();
-                if (path.equals("/code/tokenize")) {
-                    Gson gson = new GsonBuilder().create();
-                    byte[] data = exchange.getRequestBody().readAllBytes();
-                    String request = new String(data, Charset.defaultCharset());
-                    String code = gson.fromJson(request, String.class);
+                try {
+                    String path = exchange.getRequestURI().getPath();
+                    if (path.equals("/code/tokenize")) {
+                        Gson gson = new GsonBuilder().create();
+                        byte[] data = exchange.getRequestBody().readAllBytes();
+                        String request = new String(data, Charset.defaultCharset());
+                        String code = gson.fromJson(request, String.class);
 
-                    Lexer lexer = new Lexer(new LexerInput(code));
-                    LexerOutput output = lexer.lex();
-                    Json.sendResponse(exchange, output);
-                } else if (path.equals("/code/diagnostics")) {
-                    Gson gson = new GsonBuilder().create();
-                    byte[] data = exchange.getRequestBody().readAllBytes();
-                    DiagnosticsRequest request = gson.fromJson(new String(data, Charset.defaultCharset()), DiagnosticsRequest.class);
+                        Lexer lexer = new Lexer(new LexerInput(code));
+                        LexerOutput output = lexer.lex();
+                        Json.sendResponse(exchange, output);
+                    } else if (path.equals("/code/diagnostics")) {
+                        Gson gson = new GsonBuilder().create();
+                        byte[] data = exchange.getRequestBody().readAllBytes();
+                        DiagnosticsRequest request = gson.fromJson(new String(data, Charset.defaultCharset()), DiagnosticsRequest.class);
 
-                    LexerInput lexerInput = new LexerInput(request.code);
-                    Lexer lexer = new Lexer(lexerInput);
-                    LexerOutput lexerOutput = lexer.lex();
+                        LexerInput lexerInput = new LexerInput(request.code);
+                        Lexer lexer = new Lexer(lexerInput);
+                        LexerOutput lexerOutput = lexer.lex();
 
-                    Parser parser = new Parser(lexerOutput);
-                    ParserOutput parserOutput = parser.parse();
+                        Parser parser = new Parser(lexerOutput);
+                        ParserOutput parserOutput = parser.parse();
 
-                    Binder binder = new Binder(parserOutput, resolver.resolve(request.type).getContext());
-                    BinderOutput binderOutput = binder.bind();
+                        Binder binder = new Binder(parserOutput, resolver.resolve(request.type).getContext());
+                        BinderOutput binderOutput = binder.bind();
 
-                    Json.sendResponse(exchange, binderOutput.diagnostics().stream().map(d -> new DiagnosticsResponseItem(d.range, d.message)).toArray());
-                } else if (path.equals("/code/tokens")) {
-                    Json.sendResponse(exchange, Arrays.stream(TokenType.values()).map(Enum::name).toArray());
-                } else if (path.equals("/code/nodes")) {
-                    Json.sendResponse(exchange, Arrays.stream(NodeType.values()).map(Enum::name).toArray());
-                } else if (path.equals("/code/token-rules")) {
-                    Json.sendResponse(exchange, Arrays.stream(TokenType.values()).map(type -> new TokenRule(type.name(), theme.getTokenColor(type))).toArray());
-                } else if (path.equals("/code/hover")) {
-                    try {
+                        Json.sendResponse(exchange, binderOutput.diagnostics().stream().map(d -> new DiagnosticsResponseItem(d.range, d.message)).toArray());
+                    } else if (path.equals("/code/tokens")) {
+                        Json.sendResponse(exchange, Arrays.stream(TokenType.values()).map(Enum::name).toArray());
+                    } else if (path.equals("/code/nodes")) {
+                        Json.sendResponse(exchange, Arrays.stream(NodeType.values()).map(Enum::name).toArray());
+                    } else if (path.equals("/code/token-rules")) {
+                        Json.sendResponse(exchange, Arrays.stream(TokenType.values()).map(type -> new TokenRule(type.name(), theme.getTokenColor(type))).toArray());
+                    } else if (path.equals("/code/hover")) {
                         Gson gson = new GsonBuilder().create();
                         byte[] data = exchange.getRequestBody().readAllBytes();
                         HoverRequest request = gson.fromJson(new String(data, Charset.defaultCharset()), HoverRequest.class);
@@ -103,46 +103,48 @@ public class Server {
 
                         BoundNode node = find(binderOutput.unit(), request.line, request.column);
                         Json.sendResponse(exchange, hoverProvider.get(node));
-                    } catch (Throwable throwable) {
-                        throwable.printStackTrace();
+                    } else if (path.equals("/code/definition")) {
+                        Gson gson = new GsonBuilder().create();
+                        byte[] data = exchange.getRequestBody().readAllBytes();
+                        HoverRequest request = gson.fromJson(new String(data, Charset.defaultCharset()), HoverRequest.class);
+
+                        LexerInput lexerInput = new LexerInput(request.code);
+                        Lexer lexer = new Lexer(lexerInput);
+                        LexerOutput lexerOutput = lexer.lex();
+
+                        Parser parser = new Parser(lexerOutput);
+                        ParserOutput parserOutput = parser.parse();
+
+                        Binder binder = new Binder(parserOutput, resolver.resolve(request.type).getContext());
+                        BinderOutput binderOutput = binder.bind();
+
+                        BoundNode node = find(binderOutput.unit(), request.line, request.column);
+                        Json.sendResponse(exchange, definitionProvider.get(node), TextRange.class);
+                    } else if (path.equals("/code/completion")) {
+                        Gson gson = new GsonBuilder().create();
+                        byte[] data = exchange.getRequestBody().readAllBytes();
+                        CompletionRequest request = gson.fromJson(new String(data, Charset.defaultCharset()), CompletionRequest.class);
+
+                        LexerInput lexerInput = new LexerInput(request.code);
+                        Lexer lexer = new Lexer(lexerInput);
+                        LexerOutput lexerOutput = lexer.lex();
+
+                        Parser parser = new Parser(lexerOutput);
+                        ParserOutput parserOutput = parser.parse();
+
+                        Binder binder = new Binder(parserOutput, resolver.resolve(request.type).getContext());
+                        BinderOutput binderOutput = binder.bind();
+
+                        Json.sendResponse(exchange, completionProvider.get(binderOutput, request.line, request.column));
+                    } else {
+                        exchange.sendResponseHeaders(404, 0);
                     }
-                } else if (path.equals("/code/definition")) {
-                    Gson gson = new GsonBuilder().create();
-                    byte[] data = exchange.getRequestBody().readAllBytes();
-                    HoverRequest request = gson.fromJson(new String(data, Charset.defaultCharset()), HoverRequest.class);
-
-                    LexerInput lexerInput = new LexerInput(request.code);
-                    Lexer lexer = new Lexer(lexerInput);
-                    LexerOutput lexerOutput = lexer.lex();
-
-                    Parser parser = new Parser(lexerOutput);
-                    ParserOutput parserOutput = parser.parse();
-
-                    Binder binder = new Binder(parserOutput, resolver.resolve(request.type).getContext());
-                    BinderOutput binderOutput = binder.bind();
-
-                    BoundNode node = find(binderOutput.unit(), request.line, request.column);
-                    Json.sendResponse(exchange, definitionProvider.get(node), TextRange.class);
-                } else if (path.equals("/code/completion")) {
-                    Gson gson = new GsonBuilder().create();
-                    byte[] data = exchange.getRequestBody().readAllBytes();
-                    CompletionRequest request = gson.fromJson(new String(data, Charset.defaultCharset()), CompletionRequest.class);
-
-                    LexerInput lexerInput = new LexerInput(request.code);
-                    Lexer lexer = new Lexer(lexerInput);
-                    LexerOutput lexerOutput = lexer.lex();
-
-                    Parser parser = new Parser(lexerOutput);
-                    ParserOutput parserOutput = parser.parse();
-
-                    Binder binder = new Binder(parserOutput, resolver.resolve(request.type).getContext());
-                    BinderOutput binderOutput = binder.bind();
-
-                    Json.sendResponse(exchange, completionProvider.get(binderOutput, request.line, request.column));
-                } else {
-                    exchange.sendResponseHeaders(404, 0);
+                    exchange.close();
+                } catch (Throwable e) {
+                    e.printStackTrace();
+                    exchange.sendResponseHeaders(503, 0);
+                    exchange.close();
                 }
-                exchange.close();
             }
         });
 
